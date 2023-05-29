@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create IAM
+
+Parameters:
+  Password:
+    Type: String
+    Description: Password
+    NoEcho: True # パラメータのマスク
+
+# IAMグループ
+Resources:
+     AdminUserGroup:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: AdminUserGroup
+        ManagedPolicyArns:
+             - arn:aws:iam::aws:policy/AdministratorAccess
+
+     PowerUserGroup:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: PowerUserGroup
+        ManagedPolicyArns:
+             - arn:aws:iam::aws:policy/PowerUserAccess
+
+     ReadOnlyUserGroup:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: ReadOnlyUserGroup
+        ManagedPolicyArns:
+             - arn:aws:iam::aws:policy/ReadOnlyAccess
+
+# IAMユーザー
+     AdminUserA:
+      Type: AWS::IAM::User
+      Properties:
+        UserName: AdminUser_A
+        Groups:
+          - AdminUserGroup
+        LoginProfile:
+          Password: !Ref Password
+          PasswordResetRequired: false
+
+     PowerUserA:
+       Type: AWS::IAM::User
+       Properties:
+         UserName: PowerUser_A
+         Groups:
+           - PowerUserGroup
+         LoginProfile:
+           Password: !Ref Password
+           PasswordResetRequired: false
+
+     ReadOnlyUserA:
+       Type: AWS::IAM::User
+       Properties:
+         UserName: ReadOnlyUser_A
+         Groups:
+           - ReadOnlyUserGroup
+         LoginProfile:
+           Password: !Ref Password
+           PasswordResetRequired: false

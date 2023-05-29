@@ -1,0 +1,5 @@
+IAMのスタック作成時はオプション
+--capabilities CAPABILITY_NAMED_IAM
+が必要
+
+https://www.kabegiwablog.com/entry/2019/02/21/140000
