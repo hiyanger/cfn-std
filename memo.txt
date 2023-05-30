@@ -1,5 +1,17 @@
+・iam.yaml：IAMユーザー、IAMグループ
+
 IAMのスタック作成時はオプション
 --capabilities CAPABILITY_NAMED_IAM
 が必要
 
 https://www.kabegiwablog.com/entry/2019/02/21/140000
+
+・network.yaml：VPC、サブネット、ルートテーブル、IGW、NGW
+https://zenn.dev/tmasuyama1114/articles/aws-cloudformation-basics
+
+・ec2.yaml:EC2、SG
+
+・s3.yaml:S3
+
+・logs.yaml：CW、kinesis、SNS、Health（ネストしてもいいかも）
+

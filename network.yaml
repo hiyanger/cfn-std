@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Provision of VPC
+
+Resources:
+  # VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      Tags:
+        - Key: Name
+          Value: vpc-cfn
+
+  # IGW
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: igw-cfn
+  
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+         VpcId: !Ref VPC
+         InternetGatewayId: !Ref IGW
+
+  # PubSub
+  PubSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.1.0/24
+      Tags:
+        - Key: Name
+          Value: pub-sub-cfn
+
+  PubSubRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: pub-sub-cfn
+  
+  PubSubRTTarget:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PubSubRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+
+  AssoPubSubRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+         SubnetId: !Ref PubSub
+         RouteTableId: !Ref PubSubRT
+
+  # PriSub
+  PriSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.2.0/24
+      Tags:
+        - Key: Name
+          Value: pri-sub-cfn
+
+  # Nat Gateway
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+         Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+         AllocationId:
+          Fn::GetAtt: # テンプレート内のリソースから属性の値を返す
+            - NatGatewayEIP
+            - AllocationId # EIPのID
+         SubnetId: !Ref PubSub
+         Tags:
+          - Key: Name
+            Value: natgateway-cfn
+  
+  PriSubRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: pri-sub-cfn
+
+  PriSubRTTarget:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PriSubRT
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  AssoPriSubRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+         SubnetId: !Ref PriSub
+         RouteTableId: !Ref PriSubRT
