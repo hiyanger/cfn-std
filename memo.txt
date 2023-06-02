@@ -1,4 +1,7 @@
-・iam.yaml：IAMユーザー、IAMグループ
+■設計
+※パラメータはparameters.yaml的な感じで用意すること
+
+①iam.yaml：IAMユーザー、IAMグループ
 
 IAMのスタック作成時はオプション
 --capabilities CAPABILITY_NAMED_IAM
@@ -6,12 +9,20 @@ IAMのスタック作成時はオプション
 
 https://www.kabegiwablog.com/entry/2019/02/21/140000
 
-・network.yaml：VPC、サブネット、ルートテーブル、IGW、NGW
+②network.yaml：VPC、サブネット（Pub2、Pri1）、ルートテーブル、IGW、NGW
 https://zenn.dev/tmasuyama1114/articles/aws-cloudformation-basics
 
-・ec2.yaml:EC2、SG
+③ec2.yaml:ALB、EC2、SG
+ALB https://dev.classmethod.jp/articles/alb-cfn-template-to-study/
 
-・s3.yaml:S3
+④s3.yaml:S3
+⑤logs.yaml：CW、kinesis、SNS、Health（ネストしてもいいかも）
 
-・logs.yaml：CW、kinesis、SNS、Health（ネストしてもいいかも）
+■考慮が必要
+・ネスト使いたい
+・リソース名は実用性もたせてスタック名にする？
+
+■その他メモ
+・refとsub
+https://tycoh.hatenablog.com/entry/2019/06/03/172849
 

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Provision of VPC
+Description: Provision of network
 
 Resources:
   # VPC
@@ -25,8 +25,8 @@ Resources:
          VpcId: !Ref VPC
          InternetGatewayId: !Ref IGW
 
-  # PubSub
-  PubSub:
+  # PubSub1
+  PubSub1:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: ap-northeast-1a
@@ -34,28 +34,39 @@ Resources:
       CidrBlock: 10.1.1.0/24
       Tags:
         - Key: Name
-          Value: pub-sub-cfn
+          Value: pub-sub1-cfn
 
-  PubSubRT:
+  PubSub1RT:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: pub-sub-cfn
+          Value: pub-sub1-cfn
   
-  PubSubRTTarget:
+  PubSub1RTTarget:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref PubSubRT
+      RouteTableId: !Ref PubSub1RT
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref IGW
 
-  AssoPubSubRT:
+  AssoPubSub1RT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-         SubnetId: !Ref PubSub
-         RouteTableId: !Ref PubSubRT
+         SubnetId: !Ref PubSub1
+         RouteTableId: !Ref PubSub1RT
+
+  # PubSub2
+  PubSub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.2.0/24
+      Tags:
+        - Key: Name
+          Value: pub-sub2-cfn
 
   # PriSub
   PriSub:
@@ -63,7 +74,7 @@ Resources:
     Properties:
       AvailabilityZone: ap-northeast-1c
       VpcId: !Ref VPC
-      CidrBlock: 10.1.2.0/24
+      CidrBlock: 10.1.3.0/24
       Tags:
         - Key: Name
           Value: pri-sub-cfn
@@ -81,7 +92,7 @@ Resources:
           Fn::GetAtt: # テンプレート内のリソースから属性の値を返す
             - NatGatewayEIP
             - AllocationId # EIPのID
-         SubnetId: !Ref PubSub
+         SubnetId: !Ref PubSub1
          Tags:
           - Key: Name
             Value: natgateway-cfn
@@ -106,3 +117,24 @@ Resources:
     Properties:
          SubnetId: !Ref PriSub
          RouteTableId: !Ref PriSubRT
+
+Outputs:
+  Vpc:
+    Value: !Ref VPC
+    Export:
+      Name: vpc-cfn-id
+  
+  PubSubA:
+    Value: !Ref PubSub1
+    Export:
+      Name: pubsub1-cfn-id
+  
+  PubSubB:
+    Value: !Ref PubSub2
+    Export:
+      Name: pubsub2-cfn-id
+  
+  PriSub:
+    Value: !Ref PriSub
+    Export:
+      Name: prisub-cfn-id

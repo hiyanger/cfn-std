@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ALB,EC2
+
+Resources:
+     # ALB
+     ALBSG:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: alb-sg-cfn
+        GroupDescription: ALB SG
+        VpcId: {Fn::ImportValue: vpc-cfn-id}
+        Tags:
+          - Key: Name
+            Value: alb-sg-cfn
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: 0.0.0.0/0
+      
+     ALB:
+      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Properties:
+        Type: application
+        Scheme: internet-facing # インターネット用
+        Name: alb-cfn
+        Tags:
+          - Key: Name
+            Value: alb-cfn
+        IpAddressType: ipv4
+        Subnets: # 2つのサブネット必須
+          - {Fn::ImportValue: pubsub1-cfn-id}
+          - {Fn::ImportValue: pubsub2-cfn-id}
+        SecurityGroups: 
+          - !Ref ALBSG
+     
+     ListenrHTTP:
+      Type: AWS::ElasticLoadBalancingV2::Listener
+      Properties:
+        DefaultActions:
+          - Type: forward
+            TargetGroupArn: !Ref TargetGroup
+        LoadBalancerArn: !Ref ALB
+        Port: 80
+        Protocol: HTTP
+    
+     TargetGroup:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+           Name: tg-sfn
+           Tags:
+            - Key: Name
+              Value: tg-sfn
+           Port: 80
+           Protocol: HTTP
+           Matcher:
+                HttpCode: 200
+           VpcId: {Fn::ImportValue: vpc-cfn-id}
+           TargetType: instance
+           Targets:
+            - Id: !Ref EC2
+
+     EC2SG:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+           GroupDescription: EC2 SG
+           GroupName: ec2-sg-cfn
+           VpcId: {Fn::ImportValue: vpc-cfn-id}
+           Tags:
+            - Key: Name
+              Value: ec2-sg-cfn
+           SecurityGroupIngress:
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              SourceSecurityGroupId: !Ref ALBSG #ALBのSGからアクセス許可
+
+     EC2InstanceProfile: #IAMロール用のコンテナ
+      Type: AWS::IAM::InstanceProfile
+      Properties:
+        Path: "/"
+        Roles:
+          - !Ref EC2Role
+        InstanceProfileName: ec2-profile-cfn
+
+     EC2Role:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: "/"
+        RoleName: ec2-role-cfn
+        Tags:
+          - Key: Name
+            Value: ec2-role-cfn
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore # Systems Managerのコア機能利用許可
+
+     KeyPair: 
+        Type: AWS::EC2::KeyPair
+        Properties:
+          KeyName: keypair-cfn
+
+     EC2:
+        Type: AWS::EC2::Instance
+        Properties:
+          Tags:
+            - Key: Name
+              Value: ec2-cfn
+          InstanceType: t3.nano # 無料枠を使いたい場合はt2.micro
+          NetworkInterfaces:
+            - AssociatePublicIpAddress: false # パブリックIP割り当てなし
+              DeviceIndex: 0 # 必須プロパティ ないとエラーになる
+              GroupSet:
+                - !Ref EC2SG
+              SubnetId: {Fn::ImportValue: prisub-cfn-id}
+          ImageId: resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+          IamInstanceProfile: !Ref EC2InstanceProfile
+          KeyName: !Ref KeyPair
+          UserData: #ユーザーデータを使ったnginxインストール
+            Fn::Base64: |
+              #!/bin/bash
+              sudo amazon-linux-extras install nginx1
+              sudo systemctl enable nginx
+              sudo systemctl start nginx
+
