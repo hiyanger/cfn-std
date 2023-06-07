@@ -51,7 +51,7 @@ Resources:
      TargetGroup:
       Type: AWS::ElasticLoadBalancingV2::TargetGroup
       Properties:
-           Name: tg-sfn
+           Name: tg-cfn
            Tags:
             - Key: Name
               Value: tg-sfn

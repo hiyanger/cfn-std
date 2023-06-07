@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create S3
+
+Parameters:
+  BucketNameALB:
+    Type: String
+    Description: A name for the ALB bucket.
+  
+  BucketNameFlowLogs:
+    Type: String
+    Description: A name for the FlowLogs bucket.
+
+  BucketNameEC2:
+    Type: String
+    Description: A name for the EC2 bucket.
+
+Resources:
+  S3ALB:
+    Type: AWS::S3::Bucket
+    Properties:
+         BucketName: !Ref BucketNameALB
+
+  S3FlowLog:
+    Type: AWS::S3::Bucket
+    Properties:
+         BucketName: !Ref BucketNameFlowLogs
+
+  S3EC2:
+    Type: AWS::S3::Bucket
+    Properties:
+         BucketName: !Ref BucketNameEC2
+         
