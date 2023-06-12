@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Provision of S3ALB
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: A name for the ALB bucket.
+
+Resources:
+  S3ALB:
+    Type: AWS::S3::Bucket
+    Properties:
+         BucketName: !Ref BucketName
+
+  S3ALBPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3ALB
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: Allow
+            Principal: 
+              AWS: arn:aws:iam::582318560864:root
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::${BucketName}/*
+
+Outputs:
+  S3ALB:
+    Value: !Ref S3ALB
+    Export:
+      Name: S3ALB

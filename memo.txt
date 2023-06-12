@@ -1,7 +1,7 @@
 ■設計
 ※パラメータはparameters.yaml的な感じで用意すること
 
-①iam.yaml：IAMユーザー、IAMグループ
+①iam.yaml：IAMユーザー、IAMグループ★
 
 IAMのスタック作成時はオプション
 --capabilities CAPABILITY_NAMED_IAM
@@ -9,20 +9,34 @@ IAMのスタック作成時はオプション
 
 https://www.kabegiwablog.com/entry/2019/02/21/140000
 
-②network.yaml：VPC、サブネット（Pub2、Pri1）、ルートテーブル、IGW、NGW
+②network.yaml：VPC、サブネット（Pub2、Pri1）、ルートテーブル、IGW、NGW★
+aws cloudformation deploy --stack-name network-stack --template-file network.yaml
 https://zenn.dev/tmasuyama1114/articles/aws-cloudformation-basics
 
-③ec2.yaml:ALB、EC2、SG
-ALB https://dev.classmethod.jp/articles/alb-cfn-template-to-study/
+④s3.yaml:S3★
+ネストさせてる
+aws s3 cp S3_BucketPolicy s3://policy-cfn-20230612-1510/S3_BucketPolicy/ --recursive
+aws cloudformation deploy --stack-name s3-stack --template-file s3.yaml --parameter-overrides $(cat parameters_s3.yaml)
+https://qiita.com/yoshiokaCB/items/f8c36a6fe250856fd672
+https://dev.classmethod.jp/articles/cloudformation-s3bucket-type/
+cfnバケポリ https://dev.classmethod.jp/articles/multi-access-restricted-s3-cfn/
 
-④s3.yaml:S3
+③ec2.yaml:ALB、EC2、SG★
+aws cloudformation deploy --stack-name ec2-stack --template-file ec2.yaml --capabilities CAPABILITY_NAMED_IAM
+ALB https://dev.classmethod.jp/articles/alb-cfn-template-to-study/
+バケポリ https://dev.classmethod.jp/articles/alb-access-log-permission-error-s3-bucket/
+
 ⑤logs.yaml：CW、kinesis、SNS、Health（ネストしてもいいかも）
+ALBアクセスログ https://www.shigemk2.com/entry/2021/12/23/203333
 
 ■考慮が必要
-・ネスト使いたい
-・リソース名は実用性もたせてスタック名にする？
+・ネストどっかで使いたい:S3はネスト
+・リソース名は実用性もたせてスタック名にする？→あとで書き出して考える
+・S3のポリシーまわりいる？
+・スタック更新時の動作確認（EC2消えないか、一回AWSコンソールでさわるとどうなるか）
 
 ■その他メモ
 ・refとsub
 https://tycoh.hatenablog.com/entry/2019/06/03/172849
+
 

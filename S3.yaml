@@ -2,10 +2,14 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Create S3
 
 Parameters:
+  TemplateS3ALB:
+    Type: String
+    Description: template ALB URL.
+
   BucketNameALB:
     Type: String
     Description: A name for the ALB bucket.
-  
+
   BucketNameFlowLogs:
     Type: String
     Description: A name for the FlowLogs bucket.
@@ -16,9 +20,11 @@ Parameters:
 
 Resources:
   S3ALB:
-    Type: AWS::S3::Bucket
+    Type: AWS::CloudFormation::Stack
     Properties:
-         BucketName: !Ref BucketNameALB
+         TemplateURL: !Ref TemplateS3ALB
+         Parameters: 
+            BucketName: !Ref BucketNameALB
 
   S3FlowLog:
     Type: AWS::S3::Bucket
@@ -29,4 +35,3 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
          BucketName: !Ref BucketNameEC2
-         
