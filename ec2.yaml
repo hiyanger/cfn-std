@@ -1,6 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: ALB,EC2
 
+Parameters:
+  TemplateS3ALB:
+    Type: String
+    Description: template ALB URL.
+
+  BucketNameALB:
+    Type: String
+    Description: A name for the ALB bucket.
+
 Resources:
      # ALB
      ALBSG:
@@ -21,7 +30,14 @@ Resources:
             FromPort: 443
             ToPort: 443
             CidrIp: 0.0.0.0/0
-      
+
+     S3ALB:
+      Type: AWS::CloudFormation::Stack #ネスト
+      Properties:
+        TemplateURL: !Ref TemplateS3ALB
+        Parameters: 
+          BucketName: !Ref BucketNameALB
+
      ALB:
       Type: AWS::ElasticLoadBalancingV2::LoadBalancer
       Properties:
@@ -41,8 +57,8 @@ Resources:
           - Key: access_logs.s3.enabled
             Value: true
           - Key: access_logs.s3.bucket
-            Value: {Fn::ImportValue: S3ALB}
-     
+            Value: !GetAtt S3ALB.Outputs.S3ALB #下位テンプレートから受取
+
      ListenrHTTP:
       Type: AWS::ElasticLoadBalancingV2::Listener
       Properties:

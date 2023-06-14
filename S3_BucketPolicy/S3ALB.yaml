@@ -27,6 +27,5 @@ Resources:
 
 Outputs:
   S3ALB:
-    Value: !Ref S3ALB
-    Export:
-      Name: S3ALB
+    Value: !Ref S3ALB #上位テンプレートへ出力
+    Description: S3ALB Bucket

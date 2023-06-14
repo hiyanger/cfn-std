@@ -10,8 +10,9 @@ IAMのスタック作成時はオプション
 https://www.kabegiwablog.com/entry/2019/02/21/140000
 
 ②network.yaml：VPC、サブネット（Pub2、Pri1）、ルートテーブル、IGW、NGW★
-aws cloudformation deploy --stack-name network-stack --template-file network.yaml
+aws cloudformation deploy --stack-name network-stack --template-file network.yaml --parameter-overrides $(cat parameters_network.yaml)
 https://zenn.dev/tmasuyama1114/articles/aws-cloudformation-basics
+フローログ https://awstut.com/2021/12/25/vpc-flowlog/
 
 ④s3.yaml:S3★
 ネストさせてる
@@ -22,9 +23,10 @@ https://dev.classmethod.jp/articles/cloudformation-s3bucket-type/
 cfnバケポリ https://dev.classmethod.jp/articles/multi-access-restricted-s3-cfn/
 
 ③ec2.yaml:ALB、EC2、SG★
-aws cloudformation deploy --stack-name ec2-stack --template-file ec2.yaml --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation deploy --stack-name ec2-stack --template-file ec2.yaml --parameter-overrides $(cat parameters_ec2.yaml) --capabilities CAPABILITY_NAMED_IAM
 ALB https://dev.classmethod.jp/articles/alb-cfn-template-to-study/
 バケポリ https://dev.classmethod.jp/articles/alb-access-log-permission-error-s3-bucket/
+下位テンプレートからの出力受取 https://qiita.com/tyoshitake/items/ff08855d629ba4097125
 
 ⑤logs.yaml：CW、kinesis、SNS、Health（ネストしてもいいかも）
 ALBアクセスログ https://www.shigemk2.com/entry/2021/12/23/203333
@@ -40,3 +42,5 @@ ALBアクセスログ https://www.shigemk2.com/entry/2021/12/23/203333
 https://tycoh.hatenablog.com/entry/2019/06/03/172849
 
 
+6/13 ALBアクセスログ
+ec2.yaml 60 ネストしてるせいでバケット名とれない。どうするか検討。
