@@ -10,6 +10,10 @@ Parameters:
     Type: String
     Description: A name for the ALB bucket.
 
+  BucketNameEC2:
+    Type: String
+    Description: A name for the EC2 bucket.
+
 Resources:
      # ALB
      ALBSG:
@@ -126,6 +130,7 @@ Resources:
             Action: sts:AssumeRole
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore # Systems Managerのコア機能利用許可
+          - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess # CloudWatchログ出力
 
      KeyPair: 
         Type: AWS::EC2::KeyPair
@@ -148,10 +153,18 @@ Resources:
           ImageId: resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
           IamInstanceProfile: !Ref EC2InstanceProfile
           KeyName: !Ref KeyPair
-          UserData: #ユーザーデータを使ったnginxインストール
+          UserData: # アクセス確認用のnginxとCloudWatchLogs設定
             Fn::Base64: |
               #!/bin/bash
               sudo amazon-linux-extras install nginx1
               sudo systemctl enable nginx
               sudo systemctl start nginx
 
+              sudo yum install -y awslogs
+              sudo sed -i s/us-east-1/ap-northeast-1/ /etc/awslogs/awscli.conf /etc/awslogs/awscli.conf
+              sudo systemctl start awslogsd
+
+     S3EC2:
+        Type: AWS::S3::Bucket
+        Properties:
+          BucketName: !Ref BucketNameEC2
