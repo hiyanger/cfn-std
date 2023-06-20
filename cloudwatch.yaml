@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch to S3 and Health
+
+Parameters:
+  TemplateSubscriptionFileterRole:
+    Type: String
+    Description: template SubscriptionFileterRole URL.
+
+  TemplateFirehoseDeliveryRole:
+    Type: String
+    Description: template firehose_delivery_role URL.
+
+  LogGroupName01:
+    Description: The log group to associate with the subscription filter01.
+    Type: String
+    Default: /var/log/messages
+
+  DeliveryStreamName01:
+    Description: DeliveryStreamName01.
+    Type: String
+    Default: VarLogMessages-stream
+
+  SizeInMBs:
+    Type: Number
+    Description: The size of the buffer, in MBs, that Kinesis Data Firehose uses for incoming data before delivering it to the destination.
+    Default: 5
+    MinValue: 1
+    MaxValue: 128
+
+  IntervalInSeconds:
+    Type: Number
+    Description: The length of time, in seconds, that Kinesis Data Firehose buffers incoming data before delivering it to the destination.
+    Default: 300
+    MinValue: 60
+    MaxValue: 900
+
+  CompressionFormat:
+    Type: String
+    Description: The type of compression that Kinesis Data Firehose uses to compress the data that it delivers to the Amazon S3 bucket.
+    Default: UNCOMPRESSED
+
+  BucketNameEC2:
+    Type: String
+    Description: A name for the EC2 bucket.
+
+Resources:
+  # SubscriptionFileter:
+  SubscriptionFileterRole:
+    Type: AWS::CloudFormation::Stack #ネスト
+    Properties:
+      TemplateURL: !Ref TemplateSubscriptionFileterRole
+      Parameters:
+        DeliveryStreamName01: !Ref DeliveryStreamName01
+
+  SubscriptionFileter01:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !GetAtt DeliveryStream01.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref LogGroupName01
+      RoleArn: !GetAtt SubscriptionFileterRole.Outputs.SubscriptionFileterRole
+
+  # Firehose
+  FirehoseDeliveryRole:
+    Type: AWS::CloudFormation::Stack #ネスト
+    Properties:
+      TemplateURL: !Ref TemplateFirehoseDeliveryRole
+      Parameters:
+        BucketName: !Ref BucketNameEC2
+
+  DeliveryStream01:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName: !Ref DeliveryStreamName01
+      DeliveryStreamType: DirectPut
+      S3DestinationConfiguration:
+        BucketARN: !GetAtt S3EC2.Arn
+        BufferingHints:
+          SizeInMBs: !Ref SizeInMBs
+          IntervalInSeconds: !Ref IntervalInSeconds
+        CompressionFormat: !Ref CompressionFormat
+        Prefix: !Sub "${LogGroupName01}/"
+        RoleARN: !GetAtt FirehoseDeliveryRole.Outputs.FirehoseDeliveryRole
+  # S3
+  S3EC2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketNameEC2

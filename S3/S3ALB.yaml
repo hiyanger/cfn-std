@@ -10,7 +10,7 @@ Resources:
   S3ALB:
     Type: AWS::S3::Bucket
     Properties:
-         BucketName: !Ref BucketName
+      BucketName: !Ref BucketName
 
   S3ALBPolicy:
     Type: AWS::S3::BucketPolicy

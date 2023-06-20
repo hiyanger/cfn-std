@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Provision of firehose_delivery_policy
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: A name for the EC2 bucket.
+
+Resources:
+  DeliverlyPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: firehose_delivery_policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:AbortMultipartUpload
+              - s3:GetBucketLocation
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:ListBucketMultipartUploads
+              - s3:PutObject
+            Resource:
+              - !Sub "arn:aws:s3:::${BucketName}"
+              - !Sub "arn:aws:s3:::${BucketName}*"
+      Roles:
+        - !Ref DeliveryRole
+
+  DeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: firehose_deliuvery_role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref AWS::AccountId
+
+Outputs:
+  FirehoseDeliveryRole:
+    Value: !GetAtt DeliveryRole.Arn
+    Export:
+      Name: FirehoseDeliveryRole
