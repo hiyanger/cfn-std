@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudWatch Metrics,Fileter,Alarm,Health
+
+Parameters:
+  SNSTopicName:
+    Type: String
+    Default: EC2-Alarm-Topic
+  
+  Email:
+    Type: String
+
+Resources:
+  AlarmNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Ref SNSTopicName
+      DisplayName: !Ref SNSTopicName
+      Subscription:
+        - Endpoint: !Ref Email
+          Protocol: email
+
+  #EC2 ステータスチェック
+  EC2StatusCheckFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      AlarmName: EC2 status check
+      MetricName: StatusCheckFailed
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60 
+      EvaluationPeriods: 1 # 閾値超過回数
+      Threshold: 0 # 閾値
+      TreatMissingData: breaching # 欠落データは不良（EC2停止時にもアラート）
+      OKActions: 
+        - !Ref AlarmNotificationTopic
+      ComparisonOperator: GreaterThanThreshold # 閾値より大きい
+      Dimensions: # プッシュ時の付加情報
+        - Name: InstanceId
+          Value: {Fn::ImportValue: EC2-id}

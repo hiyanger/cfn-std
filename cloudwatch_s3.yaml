@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudWatch to S3 and Health
+Description: CloudWatch to S3
 
 Parameters:
   TemplateSubscriptionFileterRole:

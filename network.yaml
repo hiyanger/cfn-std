@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Provision of network
+Description: VPC,Subnet
 
 Parameters:
   BucketNameFlowLogs:
@@ -19,7 +19,7 @@ Resources:
   S3FlowLog:
     Type: AWS::S3::Bucket
     Properties:
-         BucketName: !Ref BucketNameFlowLogs
+      BucketName: !Ref BucketNameFlowLogs
   
   FlowLogToS3:
     Type: AWS::EC2::FlowLog
@@ -43,8 +43,8 @@ Resources:
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-         VpcId: !Ref VPC
-         InternetGatewayId: !Ref IGW
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref IGW
 
   # PubSub1
   PubSub1:
@@ -75,8 +75,8 @@ Resources:
   AssoPubSub1RT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-         SubnetId: !Ref PubSub1
-         RouteTableId: !Ref PubSub1RT
+      SubnetId: !Ref PubSub1
+      RouteTableId: !Ref PubSub1RT
 
   # PubSub2
   PubSub2:
@@ -104,19 +104,19 @@ Resources:
   NatGatewayEIP:
     Type: AWS::EC2::EIP
     Properties:
-         Domain: vpc
+      Domain: vpc
 
   NatGateway:
     Type: AWS::EC2::NatGateway
     Properties:
-         AllocationId:
-          Fn::GetAtt: # テンプレート内のリソースから属性の値を返す
-            - NatGatewayEIP
-            - AllocationId # EIPのID
-         SubnetId: !Ref PubSub1
-         Tags:
-          - Key: Name
-            Value: natgateway-cfn
+      AllocationId:
+        Fn::GetAtt: # テンプレート内のリソースから属性の値を返す
+          - NatGatewayEIP
+          - AllocationId # EIPのID
+      SubnetId: !Ref PubSub1
+      Tags:
+        - Key: Name
+          Value: natgateway-cfn
   
   PriSubRT:
     Type: AWS::EC2::RouteTable
@@ -136,8 +136,8 @@ Resources:
   AssoPriSubRT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-         SubnetId: !Ref PriSub
-         RouteTableId: !Ref PriSubRT
+      SubnetId: !Ref PriSub
+      RouteTableId: !Ref PriSubRT
 
 Outputs:
   Vpc:
