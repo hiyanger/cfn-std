@@ -33,9 +33,33 @@ Resources:
       EvaluationPeriods: 1 # 閾値超過回数
       Threshold: 0 # 閾値
       TreatMissingData: breaching # 欠落データは不良（EC2停止時にもアラート）
-      OKActions: 
-        - !Ref AlarmNotificationTopic
       ComparisonOperator: GreaterThanThreshold # 閾値より大きい
       Dimensions: # プッシュ時の付加情報
         - Name: InstanceId
           Value: {Fn::ImportValue: EC2-id}
+
+#EC2 メトリクスフィルタ
+  EC2ErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: "?ERROR ?Error ?error"
+      LogGroupName: /var/log/messages
+      MetricTransformations:
+        - MetricName: EC2SyslogError
+          MetricNamespace: LogMetrics
+          MetricValue: 1
+  
+  EC2ErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      AlarmName: EC2 syslog error
+      MetricName: EC2SyslogError
+      Namespace: LogMetrics
+      Statistic: Average
+      Period: 60 
+      EvaluationPeriods: 1 # 閾値超過回数
+      Threshold: 0 # 閾値
+      ComparisonOperator: GreaterThanThreshold # 閾値より大きい
+
