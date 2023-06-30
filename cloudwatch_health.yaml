@@ -38,7 +38,7 @@ Resources:
         - Name: InstanceId
           Value: {Fn::ImportValue: EC2-id}
 
-#EC2 メトリクスフィルタ
+#EC2 メトリクスフィルタ Error検知
   EC2ErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -62,4 +62,17 @@ Resources:
       EvaluationPeriods: 1 # 閾値超過回数
       Threshold: 0 # 閾値
       ComparisonOperator: GreaterThanThreshold # 閾値より大きい
+
+#Health（メンテナンス等） 通知
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name:  NotifyHealthEvent_Rule
+      EventPattern: '{"source":["aws.health"]}'
+      State: ENABLED
+      Targets:
+        - Arn: !Ref AlarmNotificationTopic
+          Id: "Id123"
+      EventBusName: default
+
 
