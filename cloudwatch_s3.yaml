@@ -86,3 +86,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketNameEC2
+
+  LambdaUsedToCleanUp:
+    Type: Custom::cleanupbucket
+    Properties:
+      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      BucketName: !Ref S3EC2

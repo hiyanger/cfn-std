@@ -1,13 +1,24 @@
+パラメータ
+https://docs.google.com/spreadsheets/d/14I7IyAuSmmkQ5u-7lDA_6KAGNicgFs7y-U6-5Ao0cO4/edit#gid=0
+
 ■設計
 ※パラメータはparameters.yaml的な感じで用意すること
 
 ①iam.yaml：IAMユーザー、IAMグループ★
+aws cloudformation deploy --stack-name iam-stack --template-file iam.yaml --parameter-overrides $(cat parameters_iam.yaml) --capabilities CAPABILITY_NAMED_IAM
 
 IAMのスタック作成時はオプション
 --capabilities CAPABILITY_NAMED_IAM
 が必要
 
 https://www.kabegiwablog.com/entry/2019/02/21/140000
+
+②lambda
+スタック削除するときにオブジェクトファイルも一緒に削除する
+aws cloudformation deploy --stack-name lambda-stack --template-file lambda.yaml --capabilities CAPABILITY_NAMED_IAM
+https://dev.classmethod.jp/articles/custom-resource-empty-s3-objects/
+https://atsushinotes.com/deploy_lambda_from_cloudformation-by-yaml/#index_id10
+https://www.yokoyan.net/entry/2019/01/22/181500
 
 ②network.yaml：VPC、サブネット（Pub2、Pri1）、ルートテーブル、IGW、NGW★
 aws cloudformation deploy --stack-name network-stack --template-file network.yaml --parameter-overrides $(cat parameters/parameters_network.yaml)
@@ -41,15 +52,18 @@ Health https://zenn.dev/mn87/articles/832a31fff0e2ab
 
 ステータスチェックのテスト sudo ifdown eth0
 
-■考慮が必要
-・ネストどっかで使いたい:S3はネスト★
-・リソース名は実用性もたせてスタック名にする？→あとで書き出して考える
-・S3のポリシーまわりいる？
-・スタック更新時の動作確認（EC2消えないか、一回AWSコンソールでさわるとどうなるか）
-　→cfnで作成したリソースは編集されると消せない
+■確認したいこと
+・スタック更新時の動作確認（EC2消えないか、一回AWSコンソールでさわるとどうなるか）★
+　- cfnで作成したリソースはコンソールで編集されると消せない
+　- 上書き更新は可能
+  - 同じyaml内の一部リソースは変更しても、変更されていない他のリソースは再作成されない。
 ・S3バケット削除が手間 DeletionPolicy で Retain？ https://inokara.hateblo.jp/entry/2018/06/03/014139
-・関数まとめ　ref sub getatt importvalue
 ・スタックの削除でSNSが消えない
+・関数まとめ　ref sub getatt importvalue
+・deleteとdeploy同時にできないか→コマンドつなげちゃえばいい？
+
+・リソース名精査
+・コード精査（不明なパラメータなどコメント）
 
 ■その他メモ
 ・refとsub
@@ -59,7 +73,3 @@ https://qiita.com/3244/items/b03b60fb82081aada617
 https://repost.aws/ja/knowledge-center/cloudformation-fn-sub-function
 ・Former2 既存コードの出力
 https://dev.classmethod.jp/articles/former2/
-
-
-6/13 ALBアクセスログ
-ec2.yaml 60 ネストしてるせいでバケット名とれない。どうするか検討。

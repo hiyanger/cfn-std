@@ -24,6 +24,12 @@ Resources:
               AWS: arn:aws:iam::582318560864:root
             Action: s3:PutObject
             Resource: !Sub arn:aws:s3:::${BucketName}/*
+  
+  LambdaUsedToCleanUp:
+    Type: Custom::cleanupbucket
+    Properties:
+      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      BucketName: !Ref S3ALB
 
 Outputs:
   S3ALB:

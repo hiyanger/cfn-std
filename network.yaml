@@ -31,6 +31,12 @@ Resources:
       ResourceId: !Ref VPC
       ResourceType: VPC
       TrafficType: ALL
+  
+  LambdaUsedToCleanUp:
+    Type: Custom::cleanupbucket
+    Properties:
+      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      BucketName: !Ref S3FlowLog
 
   # IGW
   IGW:
