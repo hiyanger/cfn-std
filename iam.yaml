@@ -12,21 +12,21 @@ Resources:
      AdminUserGroup:
       Type: AWS::IAM::Group
       Properties:
-        GroupName: AdminUserGroup
+        GroupName: adminuser-group
         ManagedPolicyArns:
              - arn:aws:iam::aws:policy/AdministratorAccess
 
      PowerUserGroup:
       Type: AWS::IAM::Group
       Properties:
-        GroupName: PowerUserGroup
+        GroupName: poweruser-group
         ManagedPolicyArns:
              - arn:aws:iam::aws:policy/PowerUserAccess
 
      ReadOnlyUserGroup:
       Type: AWS::IAM::Group
       Properties:
-        GroupName: ReadOnlyUserGroup
+        GroupName: readonlyuser-group
         ManagedPolicyArns:
              - arn:aws:iam::aws:policy/ReadOnlyAccess
 
@@ -34,9 +34,9 @@ Resources:
      AdminUserA:
       Type: AWS::IAM::User
       Properties:
-        UserName: AdminUser_A
+        UserName: adminuser_a
         Groups:
-          - AdminUserGroup
+          - adminuser-group
         LoginProfile:
           Password: !Ref Password
           PasswordResetRequired: false
@@ -44,9 +44,9 @@ Resources:
      PowerUserA:
        Type: AWS::IAM::User
        Properties:
-         UserName: PowerUser_A
+         UserName: poweruser_a
          Groups:
-           - PowerUserGroup
+           - poweruser-group
          LoginProfile:
            Password: !Ref Password
            PasswordResetRequired: false
@@ -54,9 +54,9 @@ Resources:
      ReadOnlyUserA:
        Type: AWS::IAM::User
        Properties:
-         UserName: ReadOnlyUser_A
+         UserName: readonlyuser_a
          Groups:
-           - ReadOnlyUserGroup
+           - readonlyuser-group
          LoginProfile:
            Password: !Ref Password
            PasswordResetRequired: false
