@@ -2,38 +2,43 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudWatch to S3
 
 Parameters:
+  sysname:
+    Type: String
+
   TemplateSubscriptionFileterRole:
     Type: String
     Description: template SubscriptionFileterRole URL.
 
   TemplateFirehoseDeliveryRole:
     Type: String
-    Description: template firehose_delivery_role URL.
+    Description: template FirehoseDeliveryRole URL.
 
   LogGroupName01:
-    Description: The log group to associate with the subscription filter01.
     Type: String
     Default: /var/log/messages
+    Description: The log group to associate with the subscription filter01.
 
   DeliveryStreamName01:
-    Description: DeliveryStreamName01.
     Type: String
-    Default: VarLogMessages-stream
+    Default: varlogmessages
 
+  # Kinesis Data Firehose が受信データを送信先に送信する前に受信データに対して使用するバッファサイズ (MB)
   SizeInMBs:
     Type: Number
     Description: The size of the buffer, in MBs, that Kinesis Data Firehose uses for incoming data before delivering it to the destination.
     Default: 5
     MinValue: 1
     MaxValue: 128
-
+  
+  # Kinesis Data Firehose が送信先にデータを送信する前に受信データをバッファする時間 (秒)を指定
   IntervalInSeconds:
     Type: Number
     Description: The length of time, in seconds, that Kinesis Data Firehose buffers incoming data before delivering it to the destination.
     Default: 300
     MinValue: 60
     MaxValue: 900
-
+  
+  # Amazon S3 バケットに配信されるデータを圧縮するために Kinesis Data Firehose で使用する圧縮タイプを指定
   CompressionFormat:
     Type: String
     Description: The type of compression that Kinesis Data Firehose uses to compress the data that it delivers to the Amazon S3 bucket.
@@ -50,11 +55,14 @@ Resources:
     Properties:
       TemplateURL: !Ref TemplateSubscriptionFileterRole
       Parameters:
-        DeliveryStreamName01: !Ref DeliveryStreamName01
+        RoleName: !Sub ${sysname}-subscription-filter-role
+        PolicyName: !Sub ${sysname}-subscription-filter-policy
+        DeliveryStreamName01: !Sub ${sysname}-${DeliveryStreamName01}-stream
 
   SubscriptionFileter01:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
+      FilterName: !Sub ${sysname}-${DeliveryStreamName01}-filter
       DestinationArn: !GetAtt DeliveryStream01.Arn
       FilterPattern: ""
       LogGroupName: !Ref LogGroupName01
@@ -66,12 +74,14 @@ Resources:
     Properties:
       TemplateURL: !Ref TemplateFirehoseDeliveryRole
       Parameters:
-        BucketName: !Ref BucketNameEC2
+        RoleName: !Sub ${sysname}-firehose-delivery-role
+        PolicyName: !Sub ${sysname}-firehose-delivery-policy
+        BucketNameEC2: !Sub ${sysname}-${BucketNameEC2}
 
   DeliveryStream01:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
-      DeliveryStreamName: !Ref DeliveryStreamName01
+      DeliveryStreamName: !Sub ${sysname}-${DeliveryStreamName01}-stream
       DeliveryStreamType: DirectPut
       S3DestinationConfiguration:
         BucketARN: !GetAtt S3EC2.Arn
@@ -85,10 +95,10 @@ Resources:
   S3EC2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref BucketNameEC2
+      BucketName: !Sub ${sysname}-${BucketNameEC2}
 
   LambdaUsedToCleanUp:
     Type: Custom::cleanupbucket
     Properties:
-      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      ServiceToken: {Fn::ImportValue: !Sub "${sysname}-s3delete-lambda-function"}
       BucketName: !Ref S3EC2

@@ -1,16 +1,21 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Provision of firehose_delivery_policy
+Description: Provision of FirehoseDeliveryRole
 
 Parameters:
-  BucketName:
+  BucketNameEC2:
     Type: String
-    Description: A name for the EC2 bucket.
+
+  RoleName:
+    Type: String
+
+  PolicyName:
+    Type: String
 
 Resources:
   DeliverlyPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: firehose_delivery_policy
+      PolicyName: !Ref PolicyName
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -23,15 +28,15 @@ Resources:
               - s3:ListBucketMultipartUploads
               - s3:PutObject
             Resource:
-              - !Sub "arn:aws:s3:::${BucketName}"
-              - !Sub "arn:aws:s3:::${BucketName}*"
+              - !Sub "arn:aws:s3:::${BucketNameEC2}"
+              - !Sub "arn:aws:s3:::${BucketNameEC2}*"
       Roles:
         - !Ref DeliveryRole
 
   DeliveryRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: firehose_deliuvery_role
+      RoleName: !Ref RoleName
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -46,5 +51,3 @@ Resources:
 Outputs:
   FirehoseDeliveryRole:
     Value: !GetAtt DeliveryRole.Arn
-    Export:
-      Name: FirehoseDeliveryRole

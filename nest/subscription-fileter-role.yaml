@@ -2,15 +2,20 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Provision of SubscriptionFileterRole
 
 Parameters:
+  RoleName:
+    Type: String
+
+  PolicyName:
+    Type: String
+
   DeliveryStreamName01:
-    Description: DeliveryStreamName01.
     Type: String
 
 Resources:
   SubscriptionFileterRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: subscription_filter_role
+      RoleName: !Ref RoleName
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -20,7 +25,7 @@ Resources:
             Action: sts:AssumeRole
       Path: /
       Policies:
-        - PolicyName: subscription_filter_policy
+        - PolicyName: !Ref PolicyName
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -33,5 +38,3 @@ Resources:
 Outputs:
   SubscriptionFileterRole:
     Value: !GetAtt SubscriptionFileterRole.Arn
-    Export:
-      Name: SubscriptionFileterRole

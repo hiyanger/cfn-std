@@ -2,21 +2,24 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudWatch Metrics,Fileter,Alarm,Health
 
 Parameters:
+  sysname:
+    Type: String
+
   SNSTopicName:
     Type: String
-    Default: EC2-Alarm-Topic
+    Default: alarm-topic
   
-  Email:
+  email:
     Type: String
 
 Resources:
   AlarmNotificationTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Ref SNSTopicName
-      DisplayName: !Ref SNSTopicName
+      TopicName: !Sub ${sysname}-${SNSTopicName}
+      DisplayName: !Sub ${sysname}-${SNSTopicName}
       Subscription:
-        - Endpoint: !Ref Email
+        - Endpoint: !Ref email
           Protocol: email
 
   #EC2 ステータスチェック
@@ -25,7 +28,7 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref AlarmNotificationTopic
-      AlarmName: EC2 status check
+      AlarmName: !Sub ${sysname}-ec2-statuscheck-alarm
       MetricName: StatusCheckFailed
       Namespace: AWS/EC2
       Statistic: Average
@@ -36,16 +39,17 @@ Resources:
       ComparisonOperator: GreaterThanThreshold # 閾値より大きい
       Dimensions: # プッシュ時の付加情報
         - Name: InstanceId
-          Value: {Fn::ImportValue: EC2-id}
+          Value: {Fn::ImportValue: !Sub "${sysname}-ec2"}
 
 #EC2 メトリクスフィルタ Error検知
   EC2ErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
+      FilterName: !Sub ${sysname}-ec2-syslogerror-filter
       FilterPattern: "?ERROR ?Error ?error"
       LogGroupName: /var/log/messages
       MetricTransformations:
-        - MetricName: EC2SyslogError
+        - MetricName: !Sub ${sysname}-ec2-syslogerror-metric
           MetricNamespace: LogMetrics
           MetricValue: 1
   
@@ -54,8 +58,8 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref AlarmNotificationTopic
-      AlarmName: EC2 syslog error
-      MetricName: EC2SyslogError
+      AlarmName: !Sub ${sysname}-ec2-syslogerror-alarm
+      MetricName: !Sub ${sysname}-ec2-syslogerror-metric
       Namespace: LogMetrics
       Statistic: Average
       Period: 60 
@@ -67,7 +71,7 @@ Resources:
   EventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name:  NotifyHealthEvent_Rule
+      Name: !Sub ${sysname}-notify-healthevent-rule
       EventPattern: '{"source":["aws.health"]}'
       State: ENABLED
       Targets:

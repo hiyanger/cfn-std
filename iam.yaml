@@ -1,10 +1,9 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: "2010-09-09"
 Description: IAM Group,IAM User 
 
 Parameters:
-  Password:
+  password:
     Type: String
-    Description: Password
     NoEcho: True # パラメータのマスク
 
 # IAMグループ
@@ -38,7 +37,7 @@ Resources:
         Groups:
           - adminuser-group
         LoginProfile:
-          Password: !Ref Password
+          Password: !Ref password
           PasswordResetRequired: false
 
      PowerUserA:
@@ -48,7 +47,7 @@ Resources:
          Groups:
            - poweruser-group
          LoginProfile:
-           Password: !Ref Password
+           Password: !Ref password
            PasswordResetRequired: false
 
      ReadOnlyUserA:
@@ -58,5 +57,5 @@ Resources:
          Groups:
            - readonlyuser-group
          LoginProfile:
-           Password: !Ref Password
+           Password: !Ref password
            PasswordResetRequired: false

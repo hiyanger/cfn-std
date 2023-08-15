@@ -2,9 +2,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: VPC,Subnet
 
 Parameters:
+  sysname:
+    Type: String
+
   BucketNameFlowLogs:
     Type: String
-    Description: A name for the FlowLogs bucket.
 
 Resources:
   # VPC
@@ -14,12 +16,12 @@ Resources:
       CidrBlock: 10.1.0.0/16
       Tags:
         - Key: Name
-          Value: vpc-cfn
+          Value: !Sub ${sysname}-vpc
   
   S3FlowLog:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref BucketNameFlowLogs
+      BucketName: !Sub ${sysname}-${BucketNameFlowLogs}
   
   FlowLogToS3:
     Type: AWS::EC2::FlowLog
@@ -35,7 +37,7 @@ Resources:
   LambdaUsedToCleanUp:
     Type: Custom::cleanupbucket
     Properties:
-      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      ServiceToken: {Fn::ImportValue: !Sub "${sysname}-s3delete-lambda-function"}
       BucketName: !Ref S3FlowLog
 
   # IGW
@@ -44,7 +46,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: igw-cfn
+          Value: !Sub ${sysname}-igw
   
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -61,7 +63,7 @@ Resources:
       CidrBlock: 10.1.1.0/24
       Tags:
         - Key: Name
-          Value: pub-sub1-cfn
+          Value: !Sub ${sysname}-pubsub1
 
   PubSub1RT:
     Type: AWS::EC2::RouteTable
@@ -69,7 +71,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: pub-sub1-cfn
+          Value: !Sub ${sysname}-pubsub1-rt
   
   PubSub1RTTarget:
     Type: AWS::EC2::Route
@@ -93,18 +95,7 @@ Resources:
       CidrBlock: 10.1.2.0/24
       Tags:
         - Key: Name
-          Value: pub-sub2-cfn
-
-  # PriSub
-  PriSub:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: ap-northeast-1c
-      VpcId: !Ref VPC
-      CidrBlock: 10.1.3.0/24
-      Tags:
-        - Key: Name
-          Value: pri-sub-cfn
+          Value: !Sub ${sysname}-pubsub2
 
   # Nat Gateway
   NatGatewayEIP:
@@ -122,7 +113,18 @@ Resources:
       SubnetId: !Ref PubSub1
       Tags:
         - Key: Name
-          Value: natgateway-cfn
+          Value: !Sub ${sysname}-natgateway
+
+  # PriSub
+  PriSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.3.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${sysname}-prisub
   
   PriSubRT:
     Type: AWS::EC2::RouteTable
@@ -130,7 +132,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: pri-sub-cfn
+          Value: !Sub ${sysname}-prisub-rt
 
   PriSubRTTarget:
     Type: AWS::EC2::Route
@@ -149,19 +151,19 @@ Outputs:
   Vpc:
     Value: !Ref VPC
     Export:
-      Name: vpc-cfn-id
+      Name: !Sub ${sysname}-vpc
   
   PubSubA:
     Value: !Ref PubSub1
     Export:
-      Name: pubsub1-cfn-id
+      Name: !Sub ${sysname}-pubsub1
   
   PubSubB:
     Value: !Ref PubSub2
     Export:
-      Name: pubsub2-cfn-id
+      Name: !Sub ${sysname}-pubsub2
   
   PriSub:
     Value: !Ref PriSub
     Export:
-      Name: prisub-cfn-id
+      Name: !Sub ${sysname}-prisub

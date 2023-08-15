@@ -1,11 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: lambda to delete object in S3
 
+Parameters:
+  sysname:
+    Type: String
+
 Resources:
-  s3deletelambda:
+  S3DeleteLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: s3_delete_lambda_role
+      RoleName: !Sub ${sysname}-s3deletelambda-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -17,11 +21,11 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-  LambdaFunction:
+  S3DeleteLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: s3delete
-      Role: !GetAtt s3deletelambda.Arn
+      FunctionName: !Sub ${sysname}-s3delete-lambda-function
+      Role: !GetAtt S3DeleteLambdaRole.Arn
       Runtime: python3.7
       Handler: index.lambda_handler
       Timeout: 600
@@ -61,7 +65,7 @@ Resources:
               requests.put(event['ResponseURL'], data=json.dumps(response_body))
 
 Outputs:
-  LambdaFunction:
-    Value: !GetAtt LambdaFunction.Arn
+  S3DeleteLambdaFunction:
+    Value: !GetAtt S3DeleteLambdaFunction.Arn
     Export:
-      Name: LambdaFunction-cfn-arn
+      Name: !Sub ${sysname}-s3delete-lambda-function

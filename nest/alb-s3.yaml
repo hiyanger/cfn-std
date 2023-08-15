@@ -2,15 +2,17 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Provision of S3ALB
 
 Parameters:
-  BucketName:
+  sysname:
     Type: String
-    Description: A name for the ALB bucket.
+
+  BucketNameALB:
+    Type: String
 
 Resources:
   S3ALB:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref BucketName
+      BucketName: !Ref BucketNameALB
 
   S3ALBPolicy:
     Type: AWS::S3::BucketPolicy
@@ -23,15 +25,14 @@ Resources:
             Principal: 
               AWS: arn:aws:iam::582318560864:root
             Action: s3:PutObject
-            Resource: !Sub arn:aws:s3:::${BucketName}/*
+            Resource: !Sub arn:aws:s3:::${BucketNameALB}/*
   
   LambdaUsedToCleanUp:
     Type: Custom::cleanupbucket
     Properties:
-      ServiceToken: {Fn::ImportValue: LambdaFunction-cfn-arn}
+      ServiceToken: {Fn::ImportValue: !Sub "${sysname}-s3delete-lambda-function"}
       BucketName: !Ref S3ALB
 
 Outputs:
   S3ALB:
     Value: !Ref S3ALB #上位テンプレートへ出力
-    Description: S3ALB Bucket

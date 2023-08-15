@@ -2,25 +2,27 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: ALB,EC2
 
 Parameters:
+  sysname:
+    Type: String
+
   TemplateS3ALB:
     Type: String
     Description: template ALB URL.
 
   BucketNameALB:
     Type: String
-    Description: A name for the ALB bucket.
 
 Resources:
   # ALB
   ALBSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: alb-sg-cfn
+      GroupName: !Sub ${sysname}-alb-sg
       GroupDescription: ALB SG
-      VpcId: {Fn::ImportValue: vpc-cfn-id}
+      VpcId: {Fn::ImportValue: !Sub "${sysname}-vpc"}
       Tags:
         - Key: Name
-          Value: alb-sg-cfn
+          Value: !Sub ${sysname}-alb-sg
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -36,21 +38,22 @@ Resources:
     Properties:
       TemplateURL: !Ref TemplateS3ALB
       Parameters: 
-        BucketName: !Ref BucketNameALB
+        sysname: !Ref sysname
+        BucketNameALB: !Sub ${sysname}-${BucketNameALB}
 
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Type: application
       Scheme: internet-facing # インターネット用
-      Name: alb-cfn
+      Name: !Sub ${sysname}-alb
       Tags:
         - Key: Name
-          Value: alb-cfn
+          Value: !Sub ${sysname}-alb
       IpAddressType: ipv4
       Subnets: # 2つのサブネット必須
-        - {Fn::ImportValue: pubsub1-cfn-id}
-        - {Fn::ImportValue: pubsub2-cfn-id}
+        - {Fn::ImportValue: !Sub "${sysname}-pubsub1"}
+        - {Fn::ImportValue: !Sub "${sysname}-pubsub2"}
       SecurityGroups: 
         - !Ref ALBSG
       LoadBalancerAttributes:
@@ -72,15 +75,15 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: tg-cfn
+      Name: !Sub ${sysname}-tg
       Tags:
         - Key: Name
-          Value: tg-sfn
+          Value: !Sub ${sysname}-tg
       Port: 80
       Protocol: HTTP
       Matcher:
         HttpCode: 200
-      VpcId: {Fn::ImportValue: vpc-cfn-id}
+      VpcId: {Fn::ImportValue: !Sub "${sysname}-vpc"}
       TargetType: instance
       Targets:
         - Id: !Ref EC2
@@ -90,11 +93,11 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: EC2 SG
-      GroupName: ec2-sg-cfn
-      VpcId: {Fn::ImportValue: vpc-cfn-id}
+      GroupName: !Sub ${sysname}-ec2-sg
+      VpcId: {Fn::ImportValue: !Sub "${sysname}-vpc"}
       Tags:
         - Key: Name
-          Value: ec2-sg-cfn
+          Value: !Sub ${sysname}-ec2-sg
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -107,16 +110,16 @@ Resources:
       Path: "/"
       Roles:
         - !Ref EC2Role
-      InstanceProfileName: ec2-profile-cfn
+      InstanceProfileName: !Sub ${sysname}-ec2-profile
 
   EC2Role:
     Type: AWS::IAM::Role
     Properties:
       Path: "/"
-      RoleName: ec2-role-cfn
+      RoleName: !Sub ${sysname}-ec2-role
       Tags:
         - Key: Name
-          Value: ec2-role-cfn
+          Value: !Sub ${sysname}-ec2-role
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -131,21 +134,21 @@ Resources:
   KeyPair: 
     Type: AWS::EC2::KeyPair
     Properties:
-      KeyName: keypair-cfn
+      KeyName: !Sub ${sysname}-keypair
 
   EC2:
     Type: AWS::EC2::Instance
     Properties:
       Tags:
         - Key: Name
-          Value: ec2-cfn
+          Value: !Sub ${sysname}-ec2
       InstanceType: t3.nano # 無料枠を使いたい場合はt2.micro
       NetworkInterfaces:
         - AssociatePublicIpAddress: false # パブリックIP割り当てなし
           DeviceIndex: 0 # 必須プロパティ ないとエラーになる
           GroupSet:
             - !Ref EC2SG
-          SubnetId: {Fn::ImportValue: prisub-cfn-id}
+          SubnetId: {Fn::ImportValue: !Sub "${sysname}-prisub"}
       ImageId: resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
       IamInstanceProfile: !Ref EC2InstanceProfile
       KeyName: !Ref KeyPair
@@ -163,4 +166,4 @@ Outputs:
   EC2:
     Value: !Ref EC2
     Export:
-      Name: EC2-id
+      Name: !Sub ${sysname}-ec2
