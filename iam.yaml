@@ -6,56 +6,56 @@ Parameters:
     Type: String
     NoEcho: True # パラメータのマスク
 
-# IAMグループ
 Resources:
-     AdminUserGroup:
-      Type: AWS::IAM::Group
-      Properties:
-        GroupName: adminuser-group
-        ManagedPolicyArns:
-             - arn:aws:iam::aws:policy/AdministratorAccess
+  # IAMグループ
+  AdminUserGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: adminuser-group
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
 
-     PowerUserGroup:
-      Type: AWS::IAM::Group
-      Properties:
-        GroupName: poweruser-group
-        ManagedPolicyArns:
-             - arn:aws:iam::aws:policy/PowerUserAccess
+  PowerUserGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: poweruser-group
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/PowerUserAccess
 
-     ReadOnlyUserGroup:
-      Type: AWS::IAM::Group
-      Properties:
-        GroupName: readonlyuser-group
-        ManagedPolicyArns:
-             - arn:aws:iam::aws:policy/ReadOnlyAccess
+  ReadOnlyUserGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: readonlyuser-group
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
 
-# IAMユーザー
-     AdminUserA:
-      Type: AWS::IAM::User
-      Properties:
-        UserName: adminuser_a
-        Groups:
-          - adminuser-group
-        LoginProfile:
-          Password: !Ref password
-          PasswordResetRequired: false
+  # IAMユーザー
+  AdminUserA:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: adminuser_a
+      Groups:
+        - adminuser-group
+      LoginProfile:
+        Password: !Ref password
+        PasswordResetRequired: false
 
-     PowerUserA:
-       Type: AWS::IAM::User
-       Properties:
-         UserName: poweruser_a
-         Groups:
-           - poweruser-group
-         LoginProfile:
-           Password: !Ref password
-           PasswordResetRequired: false
+  PowerUserA:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: poweruser_a
+      Groups:
+        - poweruser-group
+      LoginProfile:
+        Password: !Ref password
+        PasswordResetRequired: false
 
-     ReadOnlyUserA:
-       Type: AWS::IAM::User
-       Properties:
-         UserName: readonlyuser_a
-         Groups:
-           - readonlyuser-group
-         LoginProfile:
-           Password: !Ref password
-           PasswordResetRequired: false
+  ReadOnlyUserA:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: readonlyuser_a
+      Groups:
+        - readonlyuser-group
+      LoginProfile:
+        Password: !Ref password
+        PasswordResetRequired: false
