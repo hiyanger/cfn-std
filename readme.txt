@@ -1,3 +1,6 @@
+【ハンズオン】AWS CloudFormationで作るログ運用と監視システム
+https://zenn.dev/hiyanger/books/6d510a8f66093a
+
 パラメータ
 https://docs.google.com/spreadsheets/d/14I7IyAuSmmkQ5u-7lDA_6KAGNicgFs7y-U6-5Ao0cO4/edit#gid=0
 
